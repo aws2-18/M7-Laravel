@@ -1,25 +1,69 @@
 <?php
 
-use Illuminate\Database\Seeder;
-use App\Movie;
-use App\User;
+namespace App\Http\Controllers;
 
-class DatabaseSeeder extends Seeder
+use Illuminate\Http\Request;
+use App\Movie;
+class CatalogController extends Controller
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
-    	self::seedCatalog();
-    	$this->command->info('Datos introducidos con exito en el catalogo!');
-        // $this->call(UsersTableSeeder::class);
-        self::seedUsers();
-        $this->command->info('Datos introducidos con exito en los usuarios!');
+    public function getIndex(){
+        $arrayPeliculas = Movie::all();
+        //$arrayPeliculas = $this->ArrayPeliculas;
+
+    	return view('catalog.index', array("arrayPeliculas"=>$arrayPeliculas));
     }
-     private $arrayPeliculas = array(
+    public function getShow($id){
+        //return view('catalog.show', array("Peliculas"=>$this->arrayPeliculas[$id]),
+                               //     array('id'=>$id));
+        $Pelicula = Movie::find($id);
+
+    	return view('catalog.show',array('Pelicula'=>$Pelicula));
+
+    }
+    public function getCreate(){
+    	return view('catalog.create');
+    }
+    public function getEdit($id){
+        //return view('catalog.edit', array('id'=>$id));
+        $Pelicula = Movie::findOrFail($id);
+    	return view('catalog.edit',array('Pelicula'=>$Pelicula, 'id'=>$id));
+    }
+    public function postCreate(Request $request){
+        $movie = new Movie();
+        if ($request-> has("title") && $request-> has("year") && $request-> has("director") && $request-> has("poster") && $request-> has("synopsis"))
+        {
+            $movie->title = $request->input("title");
+            $movie->year = $request->input("year");
+            $movie->director = $request->input("director");
+            $movie->poster = $request->input("poster");
+            $movie->synopsis = $request->input("synopsis");
+            $movie->rented = false;
+            $movie->save();
+            return "Creado correctamente";
+        }else
+        return "Creado incorrectamente";
+
+    }
+    public function postEdit(Request $request, $id){
+         $movie = Movie::find($id);
+        if( $request->has("title") && $request->has("year") && $request->has("director") && $request->has("poster") && $request->has("synopsis"))
+         {
+            $movie->title = $request->input("title");
+            $movie->year = $request->input("year");
+            $movie->director = $request->input("director");
+            $movie->poster = $request->input("poster");
+            $movie->synopsis = $request->input("synopsis");
+            $movie->rented = false;
+            if( $request->has("rented") )
+                $movie->rented = true;
+            $movie->save();
+            return "Actualizado correctamente";
+        } else
+            return "Faltan datos para poder ser actualizado";
+    }
+ 
+    /*
+    private $arrayPeliculas = array(
         array(
             'title' => 'El padrino',
             'year' => '1972', 
@@ -180,45 +224,5 @@ class DatabaseSeeder extends Seeder
             'rented' => true, 
             'synopsis' => 'Un joven hastiado de su gris y monótona vida lucha contra el insomnio. En un viaje en avión conoce a un carismático vendedor de jabón que sostiene una teoría muy particular: el perfeccionismo es cosa de gentes débiles; sólo la autodestrucción hace que la vida merezca la pena. Ambos deciden entonces fundar un club secreto de lucha, donde poder descargar sus frustaciones y su ira, que tendrá un éxito arrollador.'
         )
-    );
-private $arrayUsers = array(
-				array(
-					'name'=> 'Lluis',
-					'email'=>'lluis_96_13@hotmail.com',
-					'password'=>'P@ssw0rd'
-					),
-				array(
-					'name'=> 'Alina',
-					'email'=>'a.plysyuk@gmail.com',
-					'password'=>'kiev',
-					)
-				);
-public function seedCatalog()
-	{
-		DB::table('movies')->delete();
-
-		foreach( $this->arrayPeliculas as $pelicula ) {
-	    $p = new Movie;
-	    $p->title = $pelicula['title'];
-	    $p->year = $pelicula['year'];
-	    $p->director = $pelicula['director'];
-	    $p->poster = $pelicula['poster'];
-	    $p->rented = $pelicula['rented'];
-	    $p->synopsis = $pelicula['synopsis'];
-	    $p->save();
-		}
-	}
-private function seedUsers()
-	{
-		DB::table('users')->delete();
-
-		foreach($this->arrayUsers as $users){
-			$us = new User;
-			$us->name = $users['name'];
-			$us->email = $users['email'];
-			$us->password = bcrypt($users['password']);
-			$us->save();
-		}
-	}
+    );*/
 }
-
